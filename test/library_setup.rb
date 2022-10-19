@@ -3,16 +3,7 @@
 # Initialize database
 require 'db/all'
 
-case ENV['db']
-  when 'mysql2'
-    TransactionRetry::Test::Db.connect_to_mysql2
-  when 'postgresql'
-    TransactionRetry::Test::Db.connect_to_postgresql
-  when 'sqlite3'
-    TransactionRetry::Test::Db.connect_to_sqlite3
-  else
-    TransactionRetry::Test::Db.connect_to_mysql2
-end
+TransactionRetry::Test::Db.connect_to_database
 
 require 'logger'
 ActiveRecord::Base.logger = Logger.new( File.expand_path( "#{File.dirname( __FILE__ )}/log/test.log" ) )

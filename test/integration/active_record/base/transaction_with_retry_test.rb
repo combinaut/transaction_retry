@@ -132,4 +132,26 @@ class TransactionWithRetryTest < MiniTest::Unit::TestCase
     assert_equal( 0, QueuedJob.count )
   end
 
+  class OtherConnectionRecord < ActiveRecord::Base; end
+  TransactionRetry::Test::Db.connect_to_database(OtherConnectionRecord)
+
+  def test_does_not_retry_nested_transaction_on_other_connection
+    outer_runs = 0
+    inner_runs = 0
+
+    begin
+      OtherConnectionRecord.transaction(max_retries: 1) do
+        outer_runs += 1
+        ActiveRecord::Base.transaction(max_retries: 1) do
+          inner_runs += 1
+          raise ActiveRecord::TransactionIsolationConflict.new
+        end
+      end
+    rescue ActiveRecord::TransactionIsolationConflict
+
+    end
+
+    assert_equal( 2, outer_runs )
+    assert_equal( 2, inner_runs )
+  end
 end
